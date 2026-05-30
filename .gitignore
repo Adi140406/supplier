@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.env
+.venv
+.system_generated/
+.gemini/
+instance/
+.DS_Store
+Thumbs.db

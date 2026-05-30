@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIW B-Pillar Quality Sentinel & Failure Predictor</title>
+    <!-- Modern Typography: Outfit & Inter from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Beautiful Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="glow-bg"></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="logo-box">
+                    <i class="fa-solid fa-microchip icon-logo"></i>
+                </div>
+                <div>
+                    <h1>B-PILLAR QUALITY SENTINEL</h1>
+                    <p class="subtitle">Supplier Performance Scoring & Predictive Failure Intelligence</p>
+                </div>
+            </div>
+            <div class="status-panel">
+                <span class="status-indicator">
+                    <span class="status-dot green"></span>
+                    <span class="status-label">Active Model: <strong id="lbl-best-model">Logistic Regression</strong></span>
+                </span>
+                <span class="accuracy-tag">
+                    <i class="fa-solid fa-bullseye"></i> CV AUC: <span id="lbl-cv-auc">0.9896</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="tab-scoreboard">
+                <i class="fa-solid fa-industry"></i> Supplier Scoreboard
+            </button>
+            <button class="tab-btn" data-tab="tab-simulator">
+                <i class="fa-solid fa-flask"></i> Predictive Part Simulator
+            </button>
+            <button class="tab-btn" data-tab="tab-analytics">
+                <i class="fa-solid fa-chart-line"></i> Model Insights
+            </button>
+        </nav>
+
+        <!-- TAB CONTENT 1: SUPPLIER SCOREBOARD -->
+        <main class="tab-content active" id="tab-scoreboard">
+            <div class="panel-grid-top">
+                <div class="glass-card full-width">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-ranking-star text-accent"></i> Supplier Quality Ranks & Stats</h2>
+                        <p>Aggregated metrics calculated across mechanical tolerances, chemical compositions, and failure frequencies.</p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="premium-table" id="table-suppliers">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Supplier Name</th>
+                                    <th>Supplier ID</th>
+                                    <th>Quality Score</th>
+                                    <th>Rejection Rate</th>
+                                    <th>Tested Batches</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically via Javascript -->
+                                <tr>
+                                    <td colspan="7" class="text-center loading-placeholder">
+                                        <i class="fa-solid fa-circle-notch fa-spin"></i> Retrieving supplier quality records...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-grid-two">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-simple text-cyan"></i> Quality Scores Overview</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-scores-bar"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-circle-exclamation text-red"></i> Batch Rejection Share</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-rejections-pie"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB CONTENT 2: PREDICTIVE SIMULATOR -->
+        <main class="tab-content" id="tab-simulator">
+            <div class="simulator-container">
+                <!-- Inputs Section -->
+                <div class="glass-card form-column">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-sliders text-accent"></i> B-Pillar Quality Parameters</h2>
+                        <p>Adjust the slider metrics below to run the scikit-learn predictive model and forecast part rejection risk.</p>
+                    </div>
+                    
+                    <form id="frm-predictor" class="grid-form">
+                        
+                        <!-- Supplier Association -->
+                        <div class="form-section full-span">
+                            <h3 class="section-title"><i class="fa-solid fa-truck-field"></i> Supplier Source Assignment</h3>
+                            <div class="field-group">
+                                <label for="sel-supplier">Associated Supplier</label>
+                                <select id="sel-supplier" class="premium-input">
+                                    <!-- Loaded dynamically -->
+                                </select>
+                                <small class="field-hint">Automatically maps the supplier's precalculated scoring coefficient to the model payload.</small>
+                            </div>
+                        </div>
+
+                        <!-- Mechanical Properties -->
+                        <div class="form-section">
+                            <h3 class="section-title"><i class="fa-solid fa-dumbbell"></i> Mechanical Properties</h3>
+                            
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-uts">Tensile Strength (UTS_MPa)</label>
+                                    <span class="slide-val" id="val-uts">612.6</span>
+                                </div>
+                                <input type="range" id="slide-uts" class="premium-slider" min="500" max="700" step="0.1" value="612.6">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-ys">Yield Strength (YS_MPa)</label>
+                                    <span class="slide-val" id="val-ys">374.7</span>
+                                </div>
+                                <input type="range" id="slide-ys" class="premium-slider" min="300" max="450" step="0.1" value="374.7">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-elongation">Elongation (%)</label>
+                                    <span class="slide-val" id="val-elongation">19.4</span>
+                                </div>
+                                <input type="range" id="slide-elongation" class="premium-slider" min="10" max="30" step="0.1" value="19.4">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-n">Hardening Exponent (n_value)</label>
+                                    <span class="slide-val" id="val-n">0.18</span>
+                                </div>
+                                <input type="range" id="slide-n" class="premium-slider" min="0.12" max="0.22" step="0.001" value="0.18">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-r">Plastic Anisotropy (r_value)</label>
+                                    <span class="slide-val" id="val-r">0.96</span>
+                                </div>
+                                <input type="range" id="slide-r" class="premium-slider" min="0.7" max="1.3" step="0.001" value="0.96">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-hardness-hv">Hardness (HV)</label>
+                                    <span class="slide-val" id="val-hardness-hv">197.6</span>
+                                </div>
+                                <input type="range" id="slide-hardness-hv" class="premium-slider" min="160" max="230" step="0.1" value="197.6">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-charpy">Charpy Impact energy (J)</label>
+                                    <span class="slide-val" id="val-charpy">41.1</span>
+                                </div>
+                                <input type="range" id="slide-charpy" class="premium-slider" min="15" max="55" step="0.1" value="41.1">
+                            </div>
+                        </div>
+
+                        <!-- Dimensional & Coating Properties -->
+                        <div class="form-section">
+                            <h3 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Geometry & Coatings</h3>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-thickness">Thickness (mm)</label>
+                                    <span class="slide-val" id="val-thickness">1.50</span>
+                                </div>
+                                <input type="range" id="slide-thickness" class="premium-slider" min="1.35" max="1.65" step="0.001" value="1.50">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-roughness">Surface Roughness (Ra um)</label>
+                                    <span class="slide-val" id="val-roughness">1.17</span>
+                                </div>
+                                <input type="range" id="slide-roughness" class="premium-slider" min="0.5" max="1.8" step="0.01" value="1.17">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-coating">Zinc Coating Weight (gsm)</label>
+                                    <span class="slide-val" id="val-coating">68.9</span>
+                                </div>
+                                <input type="range" id="slide-coating" class="premium-slider" min="50" max="85" step="0.1" value="68.9">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-salt">Salt Spray Exposure (hrs)</label>
+                                    <span class="slide-val" id="val-salt">581</span>
+                                </div>
+                                <input type="range" id="slide-salt" class="premium-slider" min="400" max="750" step="1" value="581">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-weld">Weld Nugget Diameter (mm)</label>
+                                    <span class="slide-val" id="val-weld">5.70</span>
+                                </div>
+                                <input type="range" id="slide-weld" class="premium-slider" min="4.5" max="6.8" step="0.01" value="5.70">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-fatigue">Fatigue Life (Cycles)</label>
+                                    <span class="slide-val" id="val-fatigue">1,062,216</span>
+                                </div>
+                                <input type="range" id="slide-fatigue" class="premium-slider" min="800000" max="1300000" step="1000" value="1062216">
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field-label-row">
+                                    <label for="slide-hardness-hrb">Hardness (HRB)</label>
+                                    <span class="slide-val" id="val-hardness-hrb">87.4</span>
+                                </div>
+                                <input type="range" id="slide-hardness-hrb" class="premium-slider" min="80" max="100" step="0.1" value="87.4">
+                            </div>
+                        </div>
+
+                        <!-- Chemical Composition -->
+                        <div class="form-section full-span">
+                            <h3 class="section-title"><i class="fa-solid fa-atom"></i> Chemical Composition (Weight %)</h3>
+                            <div class="chemistry-grid">
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-c">Carbon (C %)</label>
+                                        <span class="slide-val" id="val-c">0.073</span>
+                                    </div>
+                                    <input type="range" id="slide-c" class="premium-slider" min="0.05" max="0.10" step="0.001" value="0.073">
+                                </div>
+
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-mn">Manganese (Mn %)</label>
+                                        <span class="slide-val" id="val-mn">1.828</span>
+                                    </div>
+                                    <input type="range" id="slide-mn" class="premium-slider" min="1.4" max="2.0" step="0.001" value="1.828">
+                                </div>
+
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-si">Silicon (Si %)</label>
+                                        <span class="slide-val" id="val-si">0.210</span>
+                                    </div>
+                                    <input type="range" id="slide-si" class="premium-slider" min="0.15" max="0.30" step="0.001" value="0.210">
+                                </div>
+
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-p">Phosphorus (P %)</label>
+                                        <span class="slide-val" id="val-p">0.0128</span>
+                                    </div>
+                                    <input type="range" id="slide-p" class="premium-slider" min="0.005" max="0.025" step="0.0001" value="0.0128">
+                                </div>
+
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-s">Sulfur (S %)</label>
+                                        <span class="slide-val" id="val-s">0.0069</span>
+                                    </div>
+                                    <input type="range" id="slide-s" class="premium-slider" min="0.002" max="0.015" step="0.0001" value="0.0069">
+                                </div>
+
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-cr">Chromium (Cr %)</label>
+                                        <span class="slide-val" id="val-cr">0.184</span>
+                                    </div>
+                                    <input type="range" id="slide-cr" class="premium-slider" min="0.08" max="0.26" step="0.001" value="0.184">
+                                </div>
+
+                                <div class="field-group">
+                                    <div class="field-label-row">
+                                        <label for="slide-nb">Niobium (Nb %)</label>
+                                        <span class="slide-val" id="val-nb">0.0296</span>
+                                    </div>
+                                    <input type="range" id="slide-nb" class="premium-slider" min="0.012" max="0.035" step="0.0001" value="0.0296">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Operational Compliance Checkboxes -->
+                        <div class="form-section full-span">
+                            <h3 class="section-title"><i class="fa-solid fa-circle-check"></i> Quality & Compliance Checkmarks</h3>
+                            <div class="checkbox-grid">
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-thick-ok" checked>
+                                    <span class="checkmark"></span> Thickness Tolerance OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-coating-ok" checked>
+                                    <span class="checkmark"></span> Coating Uniformity OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-salt-ok" checked>
+                                    <span class="checkmark"></span> Salt Spray OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-comp-ok" checked>
+                                    <span class="checkmark"></span> Chemical Comp OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-bend-ok" checked>
+                                    <span class="checkmark"></span> Bend Test OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-weld-ok" checked>
+                                    <span class="checkmark"></span> Weld Quality OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-dim-ok" checked>
+                                    <span class="checkmark"></span> Dimensions OK
+                                </label>
+                                <label class="premium-checkbox">
+                                    <input type="checkbox" id="chk-charpy-ok" checked>
+                                    <span class="checkmark"></span> Charpy Impact OK
+                                </label>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Live Prediction Outputs -->
+                <div class="output-column">
+                    <div class="glass-card sticky-card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-square-poll-vertical text-accent"></i> Real-Time Verdict</h2>
+                            <p>Prediction updates dynamically as sliders are moved.</p>
+                        </div>
+                        
+                        <div class="verdict-box" id="panel-verdict">
+                            <div class="verdict-spinner" id="pred-loader" style="display: none;">
+                                <i class="fa-solid fa-spinner fa-spin"></i>
+                            </div>
+                            <div class="gauge-wrapper">
+                                <svg class="gauge-svg" viewBox="0 0 100 50">
+                                    <path class="gauge-track" d="M 10,45 A 35,35 0 0,1 90,45" fill="none" stroke-width="8"></path>
+                                    <path class="gauge-fill" id="gauge-fill" d="M 10,45 A 35,35 0 0,1 90,45" fill="none" stroke-width="8" stroke-dasharray="126" stroke-dashoffset="126"></path>
+                                </svg>
+                                <div class="gauge-center">
+                                    <span class="gauge-percentage" id="lbl-probability">0.2%</span>
+                                    <span class="gauge-sublabel">Failure Risk</span>
+                                </div>
+                            </div>
+
+                            <div class="verdict-status-container">
+                                <div class="verdict-badge status-pass" id="badge-verdict">PASS</div>
+                                <p class="verdict-explanation" id="lbl-explanation">The mechanical and chemical attributes fall well within acceptable structural fatigue tolerances.</p>
+                            </div>
+                        </div>
+
+                        <div class="card-footer-stats">
+                            <div class="mini-stat">
+                                <span class="stat-lbl">Safety Margin</span>
+                                <strong class="text-green" id="lbl-margin">99.8%</strong>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="stat-lbl">Fatigue Threshold</span>
+                                <strong id="lbl-fatigue-limit">OK</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB CONTENT 3: ANALYTICS & INSIGHTS -->
+        <main class="tab-content" id="tab-analytics">
+            <div class="panel-grid-two">
+                <div class="glass-card full-width">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-magnifying-glass-chart text-accent"></i> Model Feature Weights</h2>
+                        <p>Coefficients derived from the trained Logistic Regression model. Highly negative values drive classifications towards [PASS], whereas positive values increase the risk probability of [FAIL].</p>
+                    </div>
+                    <div class="chart-container large">
+                        <canvas id="chart-features-importance"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-grid-two mt-4">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-square-binary text-cyan"></i> Classification Quality Matrix</h3>
+                        <p>Results on historical training data validation split.</p>
+                    </div>
+                    <div class="cm-box">
+                        <div class="cm-row">
+                            <div class="cm-cell empty"></div>
+                            <div class="cm-cell header-cell">Predicted Pass</div>
+                            <div class="cm-cell header-cell">Predicted Fail</div>
+                        </div>
+                        <div class="cm-row">
+                            <div class="cm-cell header-cell vertical">Actual Pass</div>
+                            <div class="cm-cell data-cell pass">194 <span class="cell-percentage">(100%)</span></div>
+                            <div class="cm-cell data-cell error">0 <span class="cell-percentage">(0%)</span></div>
+                        </div>
+                        <div class="cm-row">
+                            <div class="cm-cell header-cell vertical">Actual Fail</div>
+                            <div class="cm-cell data-cell error">0 <span class="cell-percentage">(0%)</span></div>
+                            <div class="cm-cell data-cell fail">6 <span class="cell-percentage">(100%)</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card flex-between">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-circle-info text-cyan"></i> Model Summary & Metadata</h3>
+                    </div>
+                    <ul class="stats-list">
+                        <li>
+                            <span class="lbl">Primary Objective</span>
+                            <span class="val">Supplier Score & Part Failure prediction</span>
+                        </li>
+                        <li>
+                            <span class="lbl">Deploved Classifier</span>
+                            <span class="val">Scikit-Learn Logistic Regression Pipeline</span>
+                        </li>
+                        <li>
+                            <span class="lbl">CV ROC-AUC Score</span>
+                            <span class="val text-green">0.9896</span>
+                        </li>
+                        <li>
+                            <span class="lbl">CV F1-Score Score</span>
+                            <span class="val text-cyan">0.3333</span>
+                        </li>
+                        <li>
+                            <span class="lbl">Total Feature Dimensions</span>
+                            <span class="val">31 Variables</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="app-footer">
+            <p>&copy; 2026 BIW Automotive Engineering Corp. All model assets secured under proprietary compliance audits.</p>
+            <p>Local deployment host: <code>127.0.0.1:5000</code></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
